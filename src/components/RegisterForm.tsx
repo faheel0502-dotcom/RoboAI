@@ -66,7 +66,16 @@ export default function RegisterForm() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      let data: any = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        // Truncate text if it's too long (like an HTML page)
+        const displayError = text.length > 100 ? text.substring(0, 100) + '...' : text;
+        data = { message: displayError || `HTTP ${response.status}: ${response.statusText}` };
+      }
 
       if (response.ok) {
         setSubmitStatus('success');
@@ -74,12 +83,12 @@ export default function RegisterForm() {
         setFormData({ name: '', email: '', phone: '' });
       } else {
         setSubmitStatus('error');
-        setFeedbackMessage(data.errors?.join(', ') || data.message || 'Submission failed. Please check inputs.');
+        setFeedbackMessage(data.errors?.join(', ') || data.message || `Submission failed (Status ${response.status}).`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('API submission error:', err);
       setSubmitStatus('error');
-      setFeedbackMessage('Unable to connect to the server. Please check your connection and try again.');
+      setFeedbackMessage(`Unable to connect to the server (Error: ${err.message || 'Network Error'}). Please check your connection and try again.`);
     } finally {
       setIsSubmitting(false);
     }
