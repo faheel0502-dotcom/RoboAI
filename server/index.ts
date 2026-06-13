@@ -23,7 +23,7 @@ app.use(express.json());
 let isMongoConnected = false;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-const localDataDir = path.join(__dirname, 'data');
+const localDataDir = process.env.VERCEL ? '/tmp' : path.join(__dirname, 'data');
 const localDataFile = path.join(localDataDir, 'enquiries.json');
 
 // Ensure local storage directory exists
